@@ -1,0 +1,165 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%
+
+%%%%    Make the matrix Amat
+
+%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+nrow = 200; Ndim = 1000;
+
+Amat = randn(nrow,Ndim);
+
+Amat = Amat * 1/sqrt(nrow);
+
+ 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%
+
+%%%%    Make the 20-sparse vector x_true
+
+%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+x_true = zeros(Ndim,1);
+
+for k = 201:210   
+
+    x_true(k) = 4;
+
+end
+
+for k = 251:260    
+
+    x_true(k) = -4;
+
+end
+
+ 
+
+yvect = Amat*x_true;
+
+ 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%
+
+%%%%  Solve the optimization problem: 
+
+%%%%      Given yvect and Amat, recover the 20-sparse vector
+
+%%%%  SNEAKY ALGORITHM
+
+%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+wvect = ones(Ndim,1);  
+
+inv_wvect = zeros(Ndim,1);  eps = 0.01;
+
+ 
+
+prediction_error = zeros(40,1);
+
+ 
+
+for iter = 1:30
+
+    
+
+    %%% make the Qmatrix
+
+    
+
+    for j = 1:Ndim
+
+        inv_wvect(j) = 1/wvect(j);
+
+    end
+
+    Qmat = diag(inv_wvect);
+
+    
+
+    xvect = Qmat*Amat'*inv(Amat*Qmat*Amat')*yvect;
+
+    
+
+    %%% update the weights
+
+    
+
+    for j = 1:Ndim
+
+        wvect(j) = 1/sqrt( xvect(j)*xvect(j) + eps);
+
+    end
+
+    
+
+    
+
+ % prediction_error(iter) = 100*norm(xvect - x_true)/norm(x_true);
+
+    %%% prediction_error(iter)
+
+    
+
+    if iter > 10
+
+        eps = 0.001;
+
+    end
+
+    if iter > 20
+
+        eps = 0.0001;
+
+    end
+
+    
+
+end
+
+ 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%
+
+%%%%  trim the values of xvect that are below threshold value
+
+%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+threshold = 0.05;
+
+for k = 1:Ndim
+
+    if abs( xvect(k) ) <= threshold
+
+        xvect(k) = 0;
+
+    end
+
+end
+
+ 
+
+%%% compare the reconstructed signal with the true signal     
+
+[xvect(201:300) x_true(201:300)]
+
+ 
+
+%%% how good is the prediction 
+
+100*norm(xvect - x_true)/norm(x_true)
